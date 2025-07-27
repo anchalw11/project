@@ -32,6 +32,7 @@ import TradingChart from './TradingChart';
 import NewsSection from './NewsSection';
 import MultiAccountTracker from './MultiAccountTracker';
 import { Bot } from 'lucide-react';
+import TradingJournalDashboard from './TradingJournalDashboard';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -65,7 +66,7 @@ const Dashboard = () => {
     ...(user.membershipTier === 'professional' || user.membershipTier === 'elite' || user.membershipTier === 'enterprise'
       ? [{ id: 'accounts', label: 'Multi Account', icon: <Activity className="w-4 h-4" /> }]
       : []),
-    ...(user.membershipTier === 'enterprise'
+    ...(user.membershipTier === 'professional' || user.membershipTier === 'elite' || user.membershipTier === 'enterprise'
       ? [{ id: 'journal', label: 'Trading Journal', icon: <BookOpen className="w-4 h-4" /> }]
       : [])
   ];
@@ -104,10 +105,7 @@ const Dashboard = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'journal':
-        if (user.journalLink) {
-          window.location.href = user.journalLink;
-        }
-        return null;
+        return <TradingJournalDashboard />;
       case 'overview':
         return (
           <div className="space-y-6">
