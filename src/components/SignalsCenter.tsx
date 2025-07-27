@@ -25,48 +25,38 @@ const SignalsCenter = () => {
   const [signals, setSignals] = useState<Signal[]>([]);
 
   useEffect(() => {
-    const fetchSignalsAndTrades = async () => {
-      try {
-        const [signalsResponse, tradesResponse] = await Promise.all([
-          fetch('http://localhost:3001/telegram/messages'),
-          fetch('http://localhost:5002/api/trades')
-        ]);
-        
-        const signalsData = await signalsResponse.json();
-        const tradesData = await tradesResponse.json();
-        
-        const formattedSignals = signalsData.messages.map(parseSignal).filter(Boolean) as Signal[];
-        
-        const takenTradeIds = new Set(tradesData.map((trade: any) => trade.signal_id));
+    const loadSignalsFromStorage = () => {
+      // Load signals from localStorage (demo mode)
+      const storedMessages = JSON.parse(localStorage.getItem('telegram_messages') || '[]');
+      const storedTrades = JSON.parse(localStorage.getItem('taken_trades') || '[]');
+      
+      const formattedSignals = storedMessages.map(parseSignal).filter(Boolean) as Signal[];
+      const takenTradeIds = new Set(storedTrades.map((trade: any) => trade.signal_id || trade.id));
 
-        const updatedSignals = formattedSignals.map(signal => ({
-          ...signal,
-          taken: takenTradeIds.has(signal.id)
-        }));
+      const updatedSignals = formattedSignals.map(signal => ({
+        ...signal,
+        taken: takenTradeIds.has(signal.id)
+      }));
 
-        setSignals(updatedSignals);
-      } catch (error) {
-        console.error('Error fetching signals or trades:', error);
-      }
+      setSignals(updatedSignals);
     };
 
-    fetchSignalsAndTrades();
-
-    const socket = io('http://localhost:5002');
-
-    socket.on('connect', () => {
-      console.log('Connected to Socket.IO server');
-    });
-
-    socket.on('new_signal', (data: any) => {
-      const newSignal = parseSignal(data);
-      if (newSignal) {
-        setSignals(prevSignals => [newSignal, ...prevSignals]);
-      }
-    });
+    // Initial load
+    loadSignalsFromStorage();
+    
+    // Listen for new signals from admin dashboard
+    const handleNewSignal = (event: any) => {
+      loadSignalsFromStorage();
+    };
+    
+    window.addEventListener('newSignalSent', handleNewSignal);
+    
+    // Refresh every 5 seconds to check for updates
+    const interval = setInterval(loadSignalsFromStorage, 5000);
 
     return () => {
-      socket.disconnect();
+      window.removeEventListener('newSignalSent', handleNewSignal);
+      clearInterval(interval);
     };
   }, []);
 
@@ -116,25 +106,31 @@ const SignalsCenter = () => {
     if (!takenSignal) return;
 
     try {
-      const response = await fetch('http://localhost:5002/api/trades', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(takenSignal),
-      });
-
-      if (response.ok) {
-        setSignals(prevSignals =>
-          prevSignals.map(signal =>
-            signal.id === signalId ? { ...signal, taken: true } : signal
-          )
-        );
-        window.dispatchEvent(new CustomEvent('tradesUpdated'));
-        console.log('Trade marked as taken and sent to backend:', takenSignal);
-      } else {
-        console.error('Failed to mark trade as taken');
-      }
+      // Store taken trade in localStorage
+      const existingTrades = JSON.parse(localStorage.getItem('taken_trades') || '[]');
+      const tradeData = {
+        signal_id: signalId,
+        id: signalId,
+        pair: takenSignal.pair,
+        type: takenSignal.type,
+        entry: takenSignal.entry,
+        stopLoss: takenSignal.stopLoss,
+        takeProfit: takenSignal.takeProfit,
+        timestamp: new Date().toISOString(),
+        taken: true
+      };
+      
+      existingTrades.push(tradeData);
+      localStorage.setItem('taken_trades', JSON.stringify(existingTrades));
+      
+      setSignals(prevSignals =>
+        prevSignals.map(signal =>
+          signal.id === signalId ? { ...signal, taken: true } : signal
+        )
+      );
+      
+      window.dispatchEvent(new CustomEvent('tradesUpdated'));
+      console.log('Trade marked as taken:', takenSignal);
     } catch (error) {
       console.error('Error marking trade as taken:', error);
     }
@@ -142,21 +138,21 @@ const SignalsCenter = () => {
 
   const handleCancelTrade = async (signalId: number) => {
     try {
-      const response = await fetch(`http://localhost:5002/api/trades/${signalId}`, {
-        method: 'DELETE',
-      });
-
-      if (response.ok) {
-        setSignals(prevSignals =>
-          prevSignals.map(signal =>
-            signal.id === signalId ? { ...signal, taken: false } : signal
-          )
-        );
-        window.dispatchEvent(new CustomEvent('tradesUpdated'));
-        console.log('Trade canceled and removed from backend');
-      } else {
-        console.error('Failed to cancel trade');
-      }
+      // Remove from localStorage
+      const existingTrades = JSON.parse(localStorage.getItem('taken_trades') || '[]');
+      const updatedTrades = existingTrades.filter((trade: any) => 
+        trade.signal_id !== signalId && trade.id !== signalId
+      );
+      localStorage.setItem('taken_trades', JSON.stringify(updatedTrades));
+      
+      setSignals(prevSignals =>
+        prevSignals.map(signal =>
+          signal.id === signalId ? { ...signal, taken: false } : signal
+        )
+      );
+      
+      window.dispatchEvent(new CustomEvent('tradesUpdated'));
+      console.log('Trade canceled');
     } catch (error) {
       console.error('Error canceling trade:', error);
     }

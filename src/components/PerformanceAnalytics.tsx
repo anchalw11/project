@@ -42,19 +42,29 @@ const PerformanceAnalytics = () => {
 
   const fetchTradingData = async (): Promise<Trade[]> => {
     try {
-      const response = await getTrades();
-      const trades: Trade[] = response.data.map((trade: any) => ({
-        date: trade.date,
-        pair: trade.asset,
-        type: trade.direction,
-        result: `${trade.outcome === 'win' ? '+' : '-'}${trade.pips} pips`,
-        profit: `${trade.outcome === 'win' ? '+' : '-'}$${Math.abs(trade.profit)}`,
-        profitValue: trade.profit,
-        pips: trade.pips,
-        rsr: `1:${trade.rsr}`,
-        rsrValue: trade.rsr,
-        isWin: trade.outcome === 'win',
-      }));
+      // Load trades from localStorage for demo
+      const storedTrades = JSON.parse(localStorage.getItem('taken_trades') || '[]');
+      
+      const trades: Trade[] = storedTrades.map((trade: any, index: number) => {
+        // Simulate trade outcomes for demo
+        const isWin = Math.random() > 0.3; // 70% win rate
+        const pips = Math.floor(Math.random() * 50) + 10; // 10-60 pips
+        const profit = isWin ? Math.floor(Math.random() * 500) + 100 : -(Math.floor(Math.random() * 300) + 50);
+        
+        return {
+          date: new Date(trade.timestamp || Date.now() - index * 86400000).toISOString().split('T')[0],
+          pair: trade.pair || 'EURUSD',
+          type: trade.type?.toLowerCase() || 'buy',
+          result: `${isWin ? '+' : '-'}${pips} pips`,
+          profit: `${isWin ? '+' : '-'}$${Math.abs(profit)}`,
+          profitValue: profit,
+          pips: pips,
+          rsr: `1:${(Math.random() * 2 + 1).toFixed(1)}`,
+          rsrValue: Math.random() * 2 + 1,
+          isWin: isWin,
+        };
+      });
+      
       return trades.sort((a: Trade, b: Trade) => new Date(b.date).getTime() - new Date(a.date).getTime());
     } catch (error) {
       console.error('Failed to fetch trading data:', error);
