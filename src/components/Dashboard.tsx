@@ -30,6 +30,7 @@ import AlertSystem from './AlertSystem';
 import LivePriceTicker from './LivePriceTicker';
 import TradingChart from './TradingChart';
 import NewsSection from './NewsSection';
+import MultiAccountTracker from './MultiAccountTracker';
 import { Bot } from 'lucide-react';
 
 const Dashboard = () => {
@@ -61,6 +62,9 @@ const Dashboard = () => {
     { id: 'analytics', label: 'Performance', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'risk', label: 'Risk Management', icon: <Shield className="w-4 h-4" /> },
     { id: 'news', label: 'News', icon: <BookOpen className="w-4 h-4" /> },
+    ...(user.membershipTier === 'professional' || user.membershipTier === 'elite' || user.membershipTier === 'enterprise'
+      ? [{ id: 'accounts', label: 'Multi Account', icon: <Activity className="w-4 h-4" /> }]
+      : []),
     ...(user.membershipTier === 'enterprise'
       ? [{ id: 'journal', label: 'Trading Journal', icon: <BookOpen className="w-4 h-4" /> }]
       : [])
@@ -207,6 +211,8 @@ const Dashboard = () => {
         return <RiskManagement />;
       case 'news':
         return <NewsSection />;
+     case 'accounts':
+       return <MultiAccountTracker />;
       default:
         return null;
     }

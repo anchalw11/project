@@ -6,46 +6,57 @@ import Header from './Header';
 const MembershipPlans = () => {
   const plans = [
     {
-      name: 'Starter',
-      price: 49,
+      name: 'Kickstarter',
+      price: 0,
       period: 'month',
-      description: 'Perfect for beginners starting their prop firm journey',
+      description: 'Buy funded account with our affiliate link and get access to premium features',
       icon: <Shield className="w-8 h-8" />,
       color: 'border-gray-600',
       bgColor: 'bg-gray-800',
       buttonColor: 'bg-gray-600 hover:bg-gray-700',
+      isAffiliate: true,
       features: [
-        'Support for 5 major prop firms',
-        'Basic trading plan generation',
-        'Standard risk management tools',
-        'Email support',
+        'Risk management plan for 1 month',
+        'Trading signals for 1 week',
+        'Standard risk management calculator',
         'Phase tracking dashboard',
-        'Basic signal alerts'
+        '3 prop firm rule analyzer',
+        'Access via affiliate purchase only'
+      ],
+      affiliateLinks: [
+        {
+          name: 'FundingPips',
+          url: 'https://app.fundingpips.com/register?ref=dc5afd84',
+          code: 'dc5afd84'
+        },
+        {
+          name: 'QuantTekel',
+          url: '#',
+          code: 'Coming Soon'
+        }
       ]
     },
     {
-      name: 'Professional',
+      name: 'Starter',
       price: 99,
       period: 'month',
-      description: 'Most popular choice for serious traders',
+      description: 'Essential features for serious traders',
       icon: <Star className="w-8 h-8" />,
       color: 'border-blue-500',
       bgColor: 'bg-blue-500/10',
       buttonColor: 'bg-blue-600 hover:bg-blue-700',
-      popular: true,
       features: [
-        'Support for 15+ prop firms',
-        'Advanced custom trading plans',
-        'Professional risk management',
-        'Priority email & chat support',
-        'Real-time phase tracking',
-        'Premium signal alerts',
-        'Downloadable trading plans',
-        'Performance analytics'
+        'Risk management plan for 1 month',
+        'Trading signals for 1 month',
+        'Standard risk management calculator',
+        'Phase tracking dashboard',
+        '5 prop firm rule analyzer',
+        'Email support',
+        'Auto lot size calculator'
       ]
     },
     {
-      name: 'Elite',
+      name: 'Pro',
       price: 199,
       period: 'month',
       description: 'Advanced features for professional traders',
@@ -53,37 +64,40 @@ const MembershipPlans = () => {
       color: 'border-yellow-500',
       bgColor: 'bg-yellow-500/10',
       buttonColor: 'bg-yellow-600 hover:bg-yellow-700',
+      popular: true,
       features: [
-        'Support for 25+ prop firms',
-        'AI-powered trading plans',
-        'Advanced risk optimization',
-        'Priority support + phone calls',
-        'Real-time signal delivery',
-        'Custom lot size calculations',
-        'Multi-account management',
-        'Advanced analytics dashboard',
-        'Personal trading coach (monthly call)'
+        'Risk management plan for 1 month',
+        'Trading signals for 1 month',
+        'Standard risk management calculator',
+        'Phase tracking dashboard',
+        '15 prop firm rule analyzer',
+        'Priority chat and email support',
+        'Auto lot size calculator',
+        'Access to private community',
+        'Multi account tracker',
+        'Instant access to new features'
       ]
     },
     {
       name: 'Enterprise',
-      price: 399,
-      period: 'month',
-      description: 'Ultimate solution for trading teams',
+      price: 499,
+      period: '3 months',
+      description: 'Ultimate solution for trading teams and professionals',
       icon: <Crown className="w-8 h-8" />,
       color: 'border-purple-500',
       bgColor: 'bg-purple-500/10',
       buttonColor: 'bg-purple-600 hover:bg-purple-700',
       features: [
-        'All prop firms supported',
-        'Custom strategy development',
-        'Team management features',
-        'Dedicated account manager',
-        'White-label solutions',
-        'API access',
-        'Custom integrations',
-        'Weekly strategy sessions',
-        '24/7 priority support'
+        'Risk management plan for 3 months',
+        'Trading signals for 3 months',
+        'Standard risk management calculator',
+        'Phase tracking dashboard',
+        '15 prop firm rule analyzer',
+        '24/7 priority chat and email support',
+        'Auto lot size calculator',
+        'Access to private community',
+        'Multi account tracker',
+        'Instant access to new features'
       ]
     }
   ];
@@ -108,11 +122,11 @@ const MembershipPlans = () => {
           </div>
 
           {/* Pricing Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {plans.map((plan, index) => (
               <div
                 key={index}
-                className={`relative rounded-2xl border-2 ${plan.color} ${plan.bgColor} backdrop-blur-sm p-8 ${
+                className={`relative rounded-2xl border-2 ${plan.color} ${plan.bgColor} backdrop-blur-sm p-6 ${
                   plan.popular ? 'transform scale-105 shadow-2xl' : ''
                 }`}
               >
@@ -131,12 +145,18 @@ const MembershipPlans = () => {
                   <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
                   <p className="text-gray-400 text-sm mb-4">{plan.description}</p>
                   <div className="mb-6">
-                    <span className="text-3xl font-bold text-white">${plan.price}</span>
-                    <span className="text-gray-400">/{plan.period}</span>
+                    {plan.price === 0 ? (
+                      <span className="text-3xl font-bold text-green-400">FREE</span>
+                    ) : (
+                      <>
+                        <span className="text-3xl font-bold text-white">${plan.price}</span>
+                        <span className="text-gray-400">/{plan.period}</span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <ul className="space-y-4 mb-8">
+                <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start space-x-3">
                       <Check className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -145,13 +165,41 @@ const MembershipPlans = () => {
                   ))}
                 </ul>
 
-                <Link
-                  to="/payment"
-                  state={{ selectedPlan: { name: plan.name, price: plan.price, period: plan.period } }}
-                  className={`w-full ${plan.buttonColor} text-white py-3 rounded-lg font-semibold transition-colors text-center block`}
-                >
-                  Get Started
-                </Link>
+                {(plan as any).isAffiliate ? (
+                  <div className="space-y-3">
+                    <div className="text-center text-sm text-gray-400 mb-3">
+                      Choose your prop firm to get started:
+                    </div>
+                    {(plan as any).affiliateLinks.map((affiliate: any, idx: number) => (
+                      <div key={idx} className="space-y-2">
+                        <a
+                          href={affiliate.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`w-full ${plan.buttonColor} text-white py-2 px-4 rounded-lg font-semibold transition-colors text-center block text-sm ${
+                            affiliate.code === 'Coming Soon' ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          onClick={affiliate.code === 'Coming Soon' ? (e: any) => e.preventDefault() : undefined}
+                        >
+                          {affiliate.name} {affiliate.code === 'Coming Soon' ? '(Coming Soon)' : ''}
+                        </a>
+                        {affiliate.code !== 'Coming Soon' && (
+                          <div className="text-xs text-gray-400 text-center">
+                            Code: {affiliate.code}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <Link
+                    to="/payment"
+                    state={{ selectedPlan: { name: plan.name, price: plan.price, period: plan.period } }}
+                    className={`w-full ${plan.buttonColor} text-white py-3 rounded-lg font-semibold transition-colors text-center block`}
+                  >
+                    Get Started
+                  </Link>
+                )}
               </div>
             ))}
           </div>
@@ -163,7 +211,7 @@ const MembershipPlans = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium text-white mb-2">Which prop firms do you support?</h3>
-                  <p className="text-gray-400">We support 25+ major prop firms including FTMO, MyForexFunds, The5%ers, FundedNext, and many more.</p>
+                  <p className="text-gray-400">We support 15+ major prop firms including FTMO, MyForexFunds, The5%ers, FundingPips, QuantTekel, and many more.</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-white mb-2">Can I change plans anytime?</h3>
@@ -171,21 +219,21 @@ const MembershipPlans = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-white mb-2">What's included in the trading plan?</h3>
-                  <p className="text-gray-400">Custom trading plans include risk management rules, position sizing, phase-specific strategies, and downloadable PDFs.</p>
+                  <p className="text-gray-400">Risk management plans include position sizing, phase-specific strategies, auto lot size calculations, and rule compliance monitoring.</p>
                 </div>
               </div>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-white mb-2">How accurate are the signals?</h3>
-                  <p className="text-gray-400">Our signals are designed for prop firm compliance with focus on risk management rather than just profitability.</p>
+                  <h3 className="text-lg font-medium text-white mb-2">What is the Kickstarter plan?</h3>
+                  <p className="text-gray-400">Purchase a funded account through our affiliate links and get free access to our premium features for the specified duration.</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-white mb-2">Do you offer refunds?</h3>
                   <p className="text-gray-400">We offer a 30-day money-back guarantee if you're not satisfied with our service.</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-medium text-white mb-2">Is there setup assistance?</h3>
-                  <p className="text-gray-400">Yes, all plans include setup assistance and our support team helps you configure your trading plan.</p>
+                  <h3 className="text-lg font-medium text-white mb-2">What is multi account tracker?</h3>
+                  <p className="text-gray-400">Track multiple prop firm accounts simultaneously with consolidated analytics and risk management across all your funded accounts.</p>
                 </div>
               </div>
             </div>
@@ -196,7 +244,7 @@ const MembershipPlans = () => {
             <div className="bg-gradient-to-r from-blue-600/20 to-gray-800/50 rounded-2xl p-12 border border-gray-700">
               <h2 className="text-3xl font-bold text-white mb-4">Ready to Clear Your Challenge?</h2>
               <p className="text-lg text-gray-400 mb-8">
-                Join thousands of successful traders who achieved funded account status with our service.
+                Choose the plan that fits your trading goals and start your funded account journey today.
               </p>
               <Link
                 to="/payment"
