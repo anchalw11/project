@@ -23,18 +23,19 @@ const AdminLogin: React.FC = () => {
     setIsLoading(true);
     setError('');
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (
-        credentials.username === ADMIN_CREDENTIALS.username &&
-        credentials.password === ADMIN_CREDENTIALS.password
-      ) {
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid credentials. Access denied.');
-      }
-      setIsLoading(false);
-    }, 1000);
+    // Direct authentication without delay
+    if (
+      credentials.username === ADMIN_CREDENTIALS.username &&
+      credentials.password === ADMIN_CREDENTIALS.password
+    ) {
+      // Store admin session
+      localStorage.setItem('admin_authenticated', 'true');
+      localStorage.setItem('admin_login_time', new Date().toISOString());
+      navigate('/admin/dashboard');
+    } else {
+      setError('Invalid credentials. Access denied.');
+    }
+    setIsLoading(false);
   };
 
   return (

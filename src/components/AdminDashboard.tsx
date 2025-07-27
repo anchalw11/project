@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Send, 
   Users, 
@@ -50,6 +51,16 @@ interface AdminDashboardProps {
 }
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
+  const navigate = useNavigate();
+  
+  // Check admin authentication
+  useEffect(() => {
+    const isAuthenticated = localStorage.getItem('admin_authenticated');
+    if (!isAuthenticated) {
+      navigate('/admin');
+    }
+  }, [navigate]);
+
   const { distributeSignal } = useSignalDistribution();
   const [activeUsers] = useState<User[]>([
     {
@@ -137,87 +148,84 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
   const sendSignal = async () => {
     if (!newSignal.entry || !newSignal.stopLoss || !newSignal.takeProfit) {
-      window.alert('Please fill in all required fields');
+      alert('Please fill in all required fields');
       return;
     }
 
     setIsLoading(true);
 
-    // Simulate processing delay
-    setTimeout(() => {
-      try {
-        // Create signal object
-        const signal: Signal = {
-          id: Date.now().toString(),
-          pair: newSignal.pair,
-          direction: newSignal.direction,
-          entry: newSignal.entry,
-          stopLoss: newSignal.stopLoss,
-          takeProfit: newSignal.takeProfit.split(',').map(tp => tp.trim()),
-          confidence: newSignal.confidence,
-          analysis: newSignal.analysis,
-          ictConcepts: newSignal.ictConcepts,
-          timestamp: new Date(),
-          sentToUsers: activeUsers.filter(u => u.isActive).length,
-          status: 'sent'
-        };
+    try {
+      // Create signal object
+      const signal: Signal = {
+        id: Date.now().toString(),
+        pair: newSignal.pair,
+        direction: newSignal.direction,
+        entry: newSignal.entry,
+        stopLoss: newSignal.stopLoss,
+        takeProfit: newSignal.takeProfit.split(',').map(tp => tp.trim()),
+        confidence: newSignal.confidence,
+        analysis: newSignal.analysis,
+        ictConcepts: newSignal.ictConcepts,
+        timestamp: new Date(),
+        sentToUsers: activeUsers.filter(u => u.isActive).length,
+        status: 'sent'
+      };
 
-        // Store signal in localStorage for demo
-        const existingSignals = JSON.parse(localStorage.getItem('admin_signals') || '[]');
-        const newSignalData = {
-          ...signal,
-          timestamp: signal.timestamp.toISOString()
-        };
-        existingSignals.unshift(newSignalData);
-        localStorage.setItem('admin_signals', JSON.stringify(existingSignals));
-        
-        // Store in a format that SignalsCenter can read
-        const signalForUser = {
-          id: parseInt(signal.id),
-          text: `${newSignal.pair}\n${newSignal.direction} NOW\nEntry ${newSignal.entry}\nStop Loss ${newSignal.stopLoss}\nTake Profit ${newSignal.takeProfit}\nConfidence ${newSignal.confidence}%\n\n${newSignal.analysis}`,
-          timestamp: signal.timestamp.toISOString(),
-          from: 'Signal Master',
-          chat_id: 1,
-          message_id: parseInt(signal.id),
-          update_id: parseInt(signal.id)
-        };
-        
-        const existingMessages = JSON.parse(localStorage.getItem('telegram_messages') || '[]');
-        existingMessages.unshift(signalForUser);
-        localStorage.setItem('telegram_messages', JSON.stringify(existingMessages));
+      // Store signal in localStorage for demo
+      const existingSignals = JSON.parse(localStorage.getItem('admin_signals') || '[]');
+      const newSignalData = {
+        ...signal,
+        timestamp: signal.timestamp.toISOString()
+      };
+      existingSignals.unshift(newSignalData);
+      localStorage.setItem('admin_signals', JSON.stringify(existingSignals));
+      
+      // Store in a format that SignalsCenter can read
+      const signalForUser = {
+        id: parseInt(signal.id),
+        text: `${newSignal.pair}\n${newSignal.direction} NOW\nEntry ${newSignal.entry}\nStop Loss ${newSignal.stopLoss}\nTake Profit ${newSignal.takeProfit}\nConfidence ${newSignal.confidence}%\n\n${newSignal.analysis}`,
+        timestamp: signal.timestamp.toISOString(),
+        from: 'Signal Master',
+        chat_id: 1,
+        message_id: parseInt(signal.id),
+        update_id: parseInt(signal.id)
+      };
+      
+      const existingMessages = JSON.parse(localStorage.getItem('telegram_messages') || '[]');
+      existingMessages.unshift(signalForUser);
+      localStorage.setItem('telegram_messages', JSON.stringify(existingMessages));
 
-        // Add to signals history
-        setSignals(prev => [signal, ...prev]);
-        setLastSignalSent(new Date());
+      // Add to signals history
+      setSignals(prev => [signal, ...prev]);
+      setLastSignalSent(new Date());
 
-        // Reset form
-        setNewSignal({
-          pair: 'EURUSD',
-          direction: 'BUY',
-          entry: '',
-          stopLoss: '',
-          takeProfit: '',
-          confidence: 90,
-          analysis: '',
-          ictConcepts: [],
-          timeframe: '15m'
-        });
+      // Reset form
+      setNewSignal({
+        pair: 'EURUSD',
+        direction: 'BUY',
+        entry: '',
+        stopLoss: '',
+        takeProfit: '',
+        confidence: 90,
+        analysis: '',
+        ictConcepts: [],
+        timeframe: '15m'
+      });
 
-        // Show success message
-        window.alert(`✅ Signal sent successfully to ${activeUsers.filter(u => u.isActive).length} users!`);
-        
-        // Dispatch custom event to notify user dashboard
-        window.dispatchEvent(new CustomEvent('newSignalSent', { 
-          detail: newSignalData 
-        }));
-        
-      } catch (error) {
-        console.error('Error sending signal:', error);
-        window.alert('❌ Failed to send signal. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000); // 1 second delay to simulate processing
+      // Show success message
+      alert(`✅ Signal sent successfully to ${activeUsers.filter(u => u.isActive).length} users!`);
+      
+      // Dispatch custom event to notify user dashboard
+      window.dispatchEvent(new CustomEvent('newSignalSent', { 
+        detail: newSignalData 
+      }));
+      
+    } catch (error) {
+      console.error('Error sending signal:', error);
+      alert('❌ Failed to send signal. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleConcept = (concept: string) => {
