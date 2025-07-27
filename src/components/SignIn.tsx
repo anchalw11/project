@@ -35,42 +35,71 @@ const SignIn = () => {
       return;
     }
 
+    // Test credentials for demo
+    const testCredentials = [
+      { email: 'test@test.com', password: 'test123', name: 'Test User', tier: 'enterprise' },
+      { email: 'demo@example.com', password: 'demo123', name: 'Demo User', tier: 'professional' },
+      { email: 'user@example.com', password: 'user123', name: 'Sample User', tier: 'pro' }
+    ];
+
+    // Check test credentials first
+    const testUser = testCredentials.find(
+      cred => cred.email.toLowerCase() === email.toLowerCase() && cred.password === password
+    );
+
+    if (testUser) {
+      const newUser = {
+        id: Math.random().toString(36).substr(2, 9),
+        name: testUser.name,
+        email: email,
+        membershipTier: testUser.tier as 'basic' | 'professional' | 'institutional' | 'elite' | 'enterprise',
+        accountType: 'funded' as const,
+        riskTolerance: 'moderate' as const,
+        isAuthenticated: true,
+        selectedPlan
+      };
+      setUser(newUser);
+      setIsLoading(false);
+      navigate('/dashboard');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5002/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // Try backend authentication as fallback
+      try {
+        const response = await fetch('http://localhost:5002/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, password }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        localStorage.setItem('jwt', data.access_token);
-        const newUser = {
-          id: Math.random().toString(36).substr(2, 9),
-          name: email,
-          email: email,
-          membershipTier: 'elite' as 'basic' | 'professional' | 'institutional' | 'elite',
-          accountType: 'funded' as const,
-          riskTolerance: 'moderate' as const,
-          isAuthenticated: true,
-          selectedPlan
-        };
-        setUser(newUser);
-        if (email.includes('test')) {
+        if (response.ok) {
+          localStorage.setItem('jwt', data.access_token);
+          const newUser = {
+            id: Math.random().toString(36).substr(2, 9),
+            name: email,
+            email: email,
+            membershipTier: 'elite' as 'basic' | 'professional' | 'institutional' | 'elite',
+            accountType: 'funded' as const,
+            riskTolerance: 'moderate' as const,
+            isAuthenticated: true,
+            selectedPlan
+          };
+          setUser(newUser);
           navigate('/dashboard');
-        } else if (selectedPlan) {
-          navigate('/payment', { state: { selectedPlan } });
         } else {
-          navigate('/dashboard');
+          setError('Invalid email or password. Please check your credentials.');
         }
-      } else {
-        setError(data.msg || 'Invalid email or password. Please check your credentials.');
+      } catch (backendError) {
+        // Backend not available, show error
+        setError('Invalid email or password. Please use the test credentials provided below.');
       }
     } catch (error) {
-      setError('An error occurred. Please try again later.');
+      setError('Invalid email or password. Please use the test credentials provided below.');
     } finally {
       setIsLoading(false);
     }
@@ -207,9 +236,11 @@ const SignIn = () => {
           <div className="text-center">
             <p className="text-sm text-green-400 font-semibold mb-2">Test Login Credentials:</p>
             <div className="space-y-1">
-              <p className="text-xs text-green-300">📧 test@test.com | 🔑 test123</p>
+              <p className="text-xs text-green-300">📧 test@test.com | 🔑 test123 (Enterprise Plan)</p>
+              <p className="text-xs text-green-300">📧 demo@example.com | 🔑 demo123 (Professional Plan)</p>
+              <p className="text-xs text-green-300">📧 user@example.com | 🔑 user123 (Pro Plan)</p>
             </div>
-            <p className="text-xs text-gray-400 mt-2">This will log you in as a test user with an enterprise plan.</p>
+            <p className="text-xs text-gray-400 mt-2">Use any of these credentials to test the dashboard</p>
           </div>
         </div>
 
